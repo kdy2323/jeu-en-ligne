@@ -19,7 +19,10 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '14'
+        node-version: '18' # Mise à jour vers Node.js 18
+
+    - name: Install Firebase CLI
+      run: npm install -g firebase-tools
 
     - name: Install dependencies (si nécessaire)
       run: npm install || echo "No dependencies to install"
@@ -33,4 +36,4 @@ jobs:
         repoToken: '${{ secrets.GITHUB_TOKEN }}'
         firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
         channelId: live
-        projectId: jeu-mystere-1999 # Remplace avec ton vrai ID Firebase
+        projectId: jeu-mystere-1999 # Remplace par ton vrai ID Firebase
