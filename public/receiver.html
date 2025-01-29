@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surveillance</title>
+    <style>
+        video { width: 100%; height: auto; }
+    </style>
+</head>
+<body>
+    <h1>Flux d'écran du téléphone</h1>
+    <video id="video" autoplay playsinline></video>
+
+    <script>
+        const video = document.getElementById("video");
+        const peer = new Peer(undefined, {
+            host: 'peerjs-server.herokuapp.com',
+            port: 443,
+            secure: true
+        });
+
+        // Récupérer l'ID du téléphone (stocké sur un serveur)
+        fetch("https://your-server.com/get-peer")
+            .then(response => response.json())
+            .then(data => {
+                const phonePeerId = data.peerId;
+                console.log("Connexion au téléphone :", phonePeerId);
+                
+                const call = peer.call(phonePeerId, null);
+                call.on('stream', stream => {
+                    video.srcObject = stream;
+                });
+            })
+            .catch(error => console.error("Erreur de connexion :", error));
+    </script>
+</body>
+</html>

